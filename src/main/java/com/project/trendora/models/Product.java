@@ -1,0 +1,32 @@
+package com.project.trendora.models;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "products")
+@Data
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long productId;
+    private String name;
+    @Column(length = 220)
+    private String description;
+    private Double price;
+    private Integer stockQuantity;
+    private String brand;
+    private String imageUrl;
+    private Boolean available;
+    private Double averageRating;
+    private Integer totalReviews;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+}
