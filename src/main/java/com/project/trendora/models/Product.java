@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -29,4 +30,12 @@ public class Product {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+
+    // Orders me ye product kitni baar aaya hai
+    @OneToMany(mappedBy = "product")
+    private List<OrderItem> orderItems;
+
+    // Carts me ye product kitni baar add hua hai
+    @OneToMany(mappedBy = "product")
+    private List<CartItems> cartItems;
 }
