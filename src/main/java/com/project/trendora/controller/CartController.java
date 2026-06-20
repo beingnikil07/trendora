@@ -1,13 +1,11 @@
 package com.project.trendora.controller;
 
 import com.project.trendora.dto.AddToCartRequest;
+import com.project.trendora.dto.RemoveFromCartRequest;
 import com.project.trendora.service.Impl.CartServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -20,5 +18,9 @@ public class CartController {
     public ResponseEntity<String> addToCart(@RequestBody AddToCartRequest addToCartRequest){
         return ResponseEntity.ok(cartService.addToCart(addToCartRequest));
     }
-
+    //remove from cart
+    @PostMapping("/remove")
+    public ResponseEntity<String> removeFromCart(@RequestBody RemoveFromCartRequest request){
+        return ResponseEntity.ok(cartService.removeFromCart(request));
+    }
 }

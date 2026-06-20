@@ -5,6 +5,7 @@ import com.project.trendora.Repository.CartRepository;
 import com.project.trendora.Repository.ProductRepository;
 import com.project.trendora.Repository.UserRepository;
 import com.project.trendora.dto.AddToCartRequest;
+import com.project.trendora.dto.RemoveFromCartRequest;
 import com.project.trendora.models.Cart;
 import com.project.trendora.models.CartItems;
 import com.project.trendora.models.Product;
@@ -82,5 +83,46 @@ public class CartServiceImpl implements CartService {
         }
 
         return "Item added to cart successfully";
+    }
+
+
+    @Override
+    public String removeFromCart(RemoveFromCartRequest request) {
+        //find user
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        //find product
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        //find the cart of the user
+        Cart cart = cartRepository.findByUser(user);
+        //if cart is not there
+        if (cart == null) {
+            throw new RuntimeException("Cart not found");
+        }
+
+        //extract added items in cart
+        CartItems item = cartItemRepository
+                .findByCartAndProduct(cart, product)
+                .orElseThrow(() -> new RuntimeException("Product not present in cart"));
+
+        // quantity kam karni hai
+        if (item.getQuantity() > request.getQuantity()) {
+
+            int newQuantity = item.getQuantity() - request.getQuantity();
+
+            item.setQuantity(newQuantity);
+
+            item.setSubtotal(newQuantity * product.getPrice());
+
+            cartItemRepository.save(item);
+
+        } else {
+            // quantity equal ya zyada remove karne par poora item delete
+            cartItemRepository.delete(item);
+        }
+
+        return "Item removed successfully";
     }
 }
