@@ -1,5 +1,6 @@
 package com.project.trendora.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.trendora.enums.OrderStatus;
 import com.project.trendora.enums.PaymentMethod;
 import com.project.trendora.enums.PaymentStatus;
@@ -20,12 +21,11 @@ public class Order {
     //Which user place the order
     @ManyToOne
     @JoinColumn(name="user_id",nullable = false)
+    @JsonIgnore
     private User user;
-
     //Items of Order
     @OneToMany(mappedBy ="order" ,cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
-
     //total order amount
     @Column(nullable = false)
     private Double totalAmount;
@@ -50,5 +50,6 @@ public class Order {
         this.orderDate = LocalDateTime.now();
         this.status = OrderStatus.PENDING;
         this.paymentStatus = PaymentStatus.PENDING;
+        this.deliveryDate=LocalDateTime.now().plusDays(4);
     }
 }
