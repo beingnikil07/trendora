@@ -8,20 +8,25 @@ import com.project.trendora.exceptions.ProductNotFoundException;
 import com.project.trendora.models.Product;
 import com.project.trendora.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-
+    private static final Logger logger= LoggerFactory.getLogger(ProductServiceImpl.class);
     @Override
     public ProductResponse addProduct(ProductRequest productRequest) {
+        logger.info("creating product...");
         //check product already exist or not
         if(productRepository.existsByName(productRequest.getName())){
+            logger.warn("Product already exist with given id");
             throw new ProductAlreadyExist("Product already exists");
         }
 
@@ -37,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStockQuantity(productRequest.getStockQuantity());
 
        Product savedProduct= productRepository.save(product);
+       logger.info("Product created successfully with Id {}",savedProduct.getProductId());
        return mapToResponse(savedProduct);
     }
 
@@ -50,15 +56,6 @@ public class ProductServiceImpl implements ProductService {
     //get all products
     @Override
     public List<ProductResponse> getAllProducts(){
-//        List<Product> products=productRepository.findAll();
-//        List<ProductResponse> responses=new ArrayList<>();
-//
-//        for(Product product:products){
-//            ProductResponse productResponse=mapToResponse(product);
-//            responses.add(productResponse);
-//        }
-//        return responses;
-
         return productRepository.findAll()
                 .stream()
                 .map(this::mapToResponse)
@@ -69,10 +66,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public String deleteProduct(Long id){
      if(!productRepository.existsById(id)){
+         logger.warn("Product not found with id {}", id);
          return "Product not found";
      }
      productRepository.deleteById(id);
-     return "User deleted successfully";
+        logger.info("Product deleted successfully with id {}", id);
+     return "Product deleted successfully";
     }
 
     //to update the product
@@ -113,6 +112,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product savedProduct= productRepository.save(product);
+        logger.info("Product saved successfully with id{}",savedProduct.getProductId());
         return mapToResponse(savedProduct);
     }
 

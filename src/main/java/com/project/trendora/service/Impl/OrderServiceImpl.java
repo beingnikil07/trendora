@@ -12,6 +12,7 @@ import com.project.trendora.models.*;
 import com.project.trendora.service.OrderService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
@@ -29,13 +31,18 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse placeOrder(OrderRequest orderRequest) {
+        log.info("Placing order for user {}", orderRequest.getUserId());
         //extract the user
         User user=userRepository.findById(orderRequest.getUserId()).orElseThrow(
-                ()-> new RuntimeException("User not found")
+                ()->{
+                    log.warn("User not found with id {}", orderRequest.getUserId());
+                    return new RuntimeException("User not found");
+                }
         );
         //extract the cart of user
         Cart cart=cartRepository.findByUser(user);
         if (cart == null || cart.getCartItems().isEmpty()) {
+            log.warn("Cart is empty for user {}", user.getUserId());
             throw new RuntimeException("Cart is empty");
         }
 
@@ -73,8 +80,12 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         //save the order
         Order savedOrder = orderRepository.save(order);
+        log.info("Order {} placed successfully for user {}",savedOrder.getOrderId(), user.getUserId());
+
         //clear the cart
         cartItemRepository.deleteAll(cart.getCartItems());
+        log.info("Cart cleared for user {}", user.getUserId());
+
         return mapToResponse(savedOrder);
     }
 

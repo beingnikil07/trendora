@@ -13,6 +13,7 @@ import com.project.trendora.models.User;
 import com.project.trendora.service.CartService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class CartServiceImpl implements CartService {
 
     private final UserRepository userRepository;
@@ -29,14 +31,20 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public String addToCart(AddToCartRequest addToCartRequest) {
-
+        log.info("Adding item to cart for user {}", addToCartRequest.getUserId());
         // find the user
         User user = userRepository.findById(addToCartRequest.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found with id {}",addToCartRequest.getUserId());
+                   return new RuntimeException("User not found");
+                });
 
         // find the product
         Product product = productRepository.findById(addToCartRequest.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() ->{
+                    log.warn("Product not found with id {}", addToCartRequest.getProductId());
+                    return new RuntimeException("Product not found");
+                });
 
         // get or create cart
         Cart cart = cartRepository.findByUser(user);
@@ -45,6 +53,7 @@ public class CartServiceImpl implements CartService {
             cart = new Cart();
             cart.setUser(user);
             cart = cartRepository.save(cart);
+            log.info("New cart created for user {}", user.getUserId());
         }
 
         // check if product already exists in cart
@@ -64,6 +73,7 @@ public class CartServiceImpl implements CartService {
             );
 
             cartItemRepository.save(item);
+            log.info("Updated quantity of product {} in cart of user {}", product.getProductId(),user.getUserId());
 
         } else {
 
@@ -80,32 +90,47 @@ public class CartServiceImpl implements CartService {
             );
 
             cartItemRepository.save(item);
+            log.info("Added product {} to cart of user {}", product.getProductId(), user.getUserId());
         }
 
+        log.info("Item added to cart successfully for user {}", user.getUserId());
         return "Item added to cart successfully";
+
     }
 
 
     @Override
     public String removeFromCart(RemoveFromCartRequest request) {
+        log.info("Removing product {} from cart for user {}", request.getProductId(), request.getUserId());
+
         //find user
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->{
+                    log.warn("User not found with id {}", request.getUserId());
+                            return new RuntimeException("User not found");
+                });
         //find product
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() ->{
+                    log.warn("Product not found with id {}",request.getProductId());
+                    return new RuntimeException("Product not found");
+                });
 
         //find the cart of the user
         Cart cart = cartRepository.findByUser(user);
         //if cart is not there
         if (cart == null) {
+            log.warn("Cart not found for user {}", user.getUserId());
             throw new RuntimeException("Cart not found");
         }
 
         //extract added items in cart
         CartItems item = cartItemRepository
                 .findByCartAndProduct(cart, product)
-                .orElseThrow(() -> new RuntimeException("Product not present in cart"));
+                .orElseThrow(() ->{
+                    log.warn("Product {} is not present in cart of user {}",product.getProductId(),user.getUserId());
+                    return new RuntimeException("Product not present in cart");
+                });
 
         // quantity kam karni hai
         if (item.getQuantity() > request.getQuantity()) {
@@ -117,12 +142,14 @@ public class CartServiceImpl implements CartService {
             item.setSubtotal(newQuantity * product.getPrice());
 
             cartItemRepository.save(item);
+            log.info("Reduced quantity of product {} to {} for user {}", product.getProductId(), newQuantity, user.getUserId());
 
         } else {
             // quantity equal ya zyada remove karne par poora item delete
             cartItemRepository.delete(item);
+            log.info("Removed product {} completely from cart of user {}", product.getProductId(), user.getUserId());
         }
-
+        log.info("Item removed successfully for user {}", user.getUserId());
         return "Item removed successfully";
     }
 }
