@@ -19,11 +19,12 @@ public class User {
     private String firstName;
     private String lastName;
     @Column(unique = true)
-    private String userName;
+    private String username;
     @Column(unique = true)
     private String email;
     private String password;
     private String roles;
+
     @OneToMany(mappedBy ="user")
     private List<Order> orders;
 

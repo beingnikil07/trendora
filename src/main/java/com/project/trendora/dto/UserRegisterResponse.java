@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class UserRegisterResponse {
     private String firstName;
     private String lastName;
-    private String userName;
+    private String username;
     private String email;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
